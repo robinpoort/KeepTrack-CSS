@@ -2,15 +2,23 @@
   "name": "keeptrack-css",
   "version": "1.0.0",
   "description": "Read computed CSS property values from elements and expose them as CSS custom properties (variables)",
-  "main": "keepTrack.js",
-  "module": "keepTrack.esm.js",
+  "main": "dist/keepTrack.js",
+  "module": "dist/keepTrack.esm.js",
+  "types": "dist/keepTrack.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/keepTrack.esm.js",
+      "require": "./dist/keepTrack.js",
+      "types": "./dist/keepTrack.d.ts"
+    }
+  },
   "files": [
-    "keepTrack.js",
-    "keepTrack.min.js",
-    "keepTrack.esm.js"
+    "dist"
   ],
+  "sideEffects": false,
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "prepare": "node build.js"
   },
   "keywords": [
     "css",

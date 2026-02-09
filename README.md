@@ -27,7 +27,7 @@ Include via a `<script>` tag, CommonJS, or ES modules:
 const KeepTrack = require('keeptrack-css');
 
 // ES modules
-import KeepTrack from 'keeptrack-css/keepTrack.esm.js';
+import KeepTrack from 'keeptrack-css';
 ```
 
 ## Basic usage
