@@ -1,6 +1,6 @@
 {
   "name": "keeptrack-css",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Read computed CSS property values from elements and expose them as CSS custom properties (variables)",
   "main": "dist/keepTrack.js",
   "module": "dist/keepTrack.esm.js",
