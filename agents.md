@@ -7,14 +7,19 @@ KeepTrack-CSS is a zero-dependency browser library that reads computed CSS prope
 ## Project structure
 
 ```
-src/keepTrack.js    — Source of truth (UMD format)
-build.js            — Build script (generates dist/)
-dist/               — Generated output (not in git)
-  keepTrack.js      — UMD copy
-  keepTrack.esm.js  — ESM build
-  keepTrack.min.js  — Minified UMD
-  keepTrack.d.ts    — TypeScript definitions
-docs/               — Demo/test page (GitHub Pages)
+src/keepTrack.js       — Source of truth (UMD format)
+build.js               — Build script (generates dist/)
+dist/                  — Generated output (not in git)
+  keepTrack.js         — UMD copy
+  keepTrack.esm.js     — ESM build
+  keepTrack.min.js     — Minified UMD
+  keepTrack.min.js.map — Sourcemap for minified build
+  keepTrack.d.ts       — TypeScript definitions
+tests/                 — Vitest test suite (happy-dom)
+docs/                  — Demo/test page (GitHub Pages)
+eslint.config.mjs      — ESLint 9 flat config
+vitest.config.mjs      — Vitest config
+CHANGELOG.md           — Release changelog
 ```
 
 ## Key conventions
@@ -28,10 +33,37 @@ docs/               — Demo/test page (GitHub Pages)
 ## Build
 
 ```bash
-npm run build     # generates dist/ (UMD, ESM, min, d.ts)
+npm run build     # generates dist/ (UMD, ESM, min, min.js.map, d.ts)
 ```
 
 The `prepare` script also runs `node build.js`, so `npm install` from a git clone will build automatically.
+
+## Lint
+
+```bash
+npm run lint      # ESLint 9 flat config
+```
+
+Config lives in `eslint.config.mjs`. Browser globals are set for `src/`, CommonJS globals for `build.js`. `dist/`, `node_modules/`, and `docs/` are ignored.
+
+## Test
+
+```bash
+npm test          # vitest run (happy-dom environment)
+```
+
+Tests are in `tests/keepTrack.test.js`. The UMD source is loaded via `new Function()` with a local `module.exports` so it runs in the happy-dom environment. Tests verify API shape, CSS variable placement, cleanup, observe/unobserve, scrollbar tracking, and callbacks.
+
+**Limitations:** happy-dom's `getComputedStyle` returns empty strings and `getBoundingClientRect` returns zeroes. Tests check that variables are *set*, not their pixel values. Sticky detection is not meaningfully testable.
+
+## Release
+
+Releases are published to npm automatically via `.github/workflows/release.yml` when a GitHub Release is created (published).
+
+**Setup:**
+1. Create an npm access token (Granular Access Token, publish-only, scoped to `keeptrack-css`).
+2. Add it as a repository secret named `NPM_TOKEN` in GitHub Settings > Secrets and variables > Actions.
+3. Create a GitHub Release — the workflow runs build, lint, test and then `npm publish --provenance --access public`.
 
 ## Public API
 

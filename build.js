@@ -21,10 +21,16 @@ async function build() {
   const minified = await minify(source, {
     compress: { passes: 2 },
     mangle: true,
-    output: { comments: false }
+    output: { comments: false },
+    sourceMap: {
+      filename: 'keepTrack.min.js',
+      url: 'keepTrack.min.js.map'
+    }
   });
   fs.writeFileSync(path.join(DIST, 'keepTrack.min.js'), minified.code);
+  fs.writeFileSync(path.join(DIST, 'keepTrack.min.js.map'), minified.map);
   console.log(`dist/keepTrack.min.js: ${minified.code.length} bytes`);
+  console.log(`dist/keepTrack.min.js.map: ${minified.map.length} bytes`);
 
   // ESM build
   const esm = `// KeepTrack ESM build - auto-generated from src/keepTrack.js
