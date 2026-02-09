@@ -16,7 +16,8 @@ dist/                  — Generated output (not in git)
   keepTrack.min.js.map — Sourcemap for minified build
   keepTrack.d.ts       — TypeScript definitions
 tests/                 — Vitest test suite (happy-dom)
-docs/                  — Demo/test page (GitHub Pages)
+index.html             — Demo page (GitHub Pages, served from root)
+styles.css             — Demo page styles
 eslint.config.mjs      — ESLint 9 flat config
 vitest.config.mjs      — Vitest config
 CHANGELOG.md           — Release changelog
@@ -98,5 +99,5 @@ Returns an instance with: `init(options?)`, `destroy()`, `recalculate()`, `obser
 - Always edit `src/keepTrack.js`, never `dist/` files directly.
 - Run `npm run build` after changes to regenerate dist/.
 - If you change the public API (options, methods, return types), update the `dts` string in `build.js` to keep type definitions in sync.
-- Test changes using `docs/index.html` which covers all features interactively.
-- The demo page loads `../src/keepTrack.js` directly (not the built version).
+- Test changes using `index.html` which covers all features interactively.
+- The demo page loads `src/keepTrack.js` directly (not the built version).
