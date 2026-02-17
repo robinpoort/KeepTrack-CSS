@@ -79,6 +79,21 @@
     </section>
 
     <!-- ==============================
+         4. Tracking with data-keeptrack-id (on :root)
+         ============================== -->
+    <section class="test-section">
+      <h2>Tracking with data-keeptrack-id (on :root)</h2>
+      <p>Sets <code>--alias-box-height</code> on <code>:root</code> without a real <code>id</code>.</p>
+      <div class="box resizable" data-keeptrack="height" data-keeptrack-id="alias-box">
+        <span>Resize me</span>
+        <span class="box-info">--alias-box-height: <code class="val-dataid-height">…</code></span>
+      </div>
+      <div class="box consumer">
+        This box uses <code>var(--alias-box-height)</code> as its min-height.
+      </div>
+    </section>
+
+    <!-- ==============================
          Targets
          ============================== -->
     <h2 id="section-targets" class="section-heading">Targets</h2>
@@ -424,6 +439,7 @@
 
       // ID-based
       setText('.val-id-height', rs.getPropertyValue('--tracked-box-height'));
+      setText('.val-dataid-height', rs.getPropertyValue('--alias-box-height'));
 
       // Parent numeric
       const gpEl = document.querySelector('.grandparent');

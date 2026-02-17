@@ -84,6 +84,35 @@ describe('KeepTrack', () => {
     expect(document.documentElement.style.getPropertyValue('--myid-height')).toBe('200px');
   });
 
+  it('element with data-keeptrack-id sets prefixed var on :root', () => {
+    document.body.innerHTML = '<div data-keeptrack="height" data-keeptrack-id="mytoken" style="height: 120px"></div>';
+    tracker = KeepTrack();
+    expect(document.documentElement.style.getPropertyValue('--mytoken-height')).toBe('120px');
+  });
+
+  it('data-keeptrack-id takes precedence over id', () => {
+    document.body.innerHTML = '<div id="realid" data-keeptrack="height" data-keeptrack-id="alias" style="height: 90px"></div>';
+    tracker = KeepTrack();
+    expect(document.documentElement.style.getPropertyValue('--alias-height')).toBe('90px');
+    expect(document.documentElement.style.getPropertyValue('--realid-height')).toBe('');
+  });
+
+  it('data-keeptrack-target-parent overrides :root placement for id-prefixed vars', () => {
+    document.body.innerHTML = '<div id="parent"><div id="realid" data-keeptrack="height" data-keeptrack-target-parent="1" style="height: 44px"></div></div>';
+    tracker = KeepTrack();
+    const parent = document.getElementById('parent');
+    expect(parent.style.getPropertyValue('--realid-height')).toBe('44px');
+    expect(document.documentElement.style.getPropertyValue('--realid-height')).toBe('');
+  });
+
+  it('data-keeptrack-target-parent overrides :root placement for data-keeptrack-id vars', () => {
+    document.body.innerHTML = '<div id="parent"><div data-keeptrack="height" data-keeptrack-id="alias" data-keeptrack-target-parent="1" style="height: 55px"></div></div>';
+    tracker = KeepTrack();
+    const parent = document.getElementById('parent');
+    expect(parent.style.getPropertyValue('--alias-height')).toBe('55px');
+    expect(document.documentElement.style.getPropertyValue('--alias-height')).toBe('');
+  });
+
   it('data-keeptrack-target-parent="1" sets var on parent', () => {
     document.body.innerHTML = '<div id="parent"><div data-keeptrack="height" data-keeptrack-target-parent="1" style="height: 30px"></div></div>';
     tracker = KeepTrack();

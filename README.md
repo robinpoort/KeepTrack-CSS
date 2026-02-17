@@ -74,7 +74,7 @@ Multiple properties:
 <div data-keeptrack="height, width, padding-top" style="--height: 64px; --width: 320px; --padding-top: 16px">...</div>
 ```
 
-### On the document root (via `id`)
+### On the document root (via `id` or `data-keeptrack-id`)
 
 If the element has an `id`, the variable is set on `:root` with the id as a prefix:
 
@@ -90,6 +90,20 @@ If the element has an `id`, the variable is set on `:root` with the id as a pref
 </html>
 ```
 
+You can also set a custom prefix with `data-keeptrack-id` (useful when you cannot set a real `id`):
+
+```html
+<!-- Input -->
+<header data-keeptrack="height" data-keeptrack-id="site-header">...</header>
+
+<!-- Result: sets --site-header-height on :root -->
+<html style="--site-header-height: 80px">
+  ...
+  <header data-keeptrack="height" data-keeptrack-id="site-header">...</header>
+  ...
+</html>
+```
+
 ```css
 main {
   padding-top: var(--site-header-height);
@@ -98,7 +112,7 @@ main {
 
 ### On a target parent (via `data-keeptrack-target-parent`)
 
-You can set the variable on a parent or any other element. The attribute accepts either a number (levels to traverse up) or a CSS selector:
+You can set the variable on a parent or any other element. The attribute accepts either a number (levels to traverse up) or a CSS selector.
 
 ```html
 <!-- Traverse 2 levels up -->
@@ -136,7 +150,7 @@ You can set the variable on a parent or any other element. The attribute accepts
 
 When using a selector, KeepTrack first tries `el.closest(selector)` to find the nearest ancestor. If no ancestor matches, it falls back to `document.querySelector(selector)`.
 
-If the element also has an `id`, the variable name includes the id:
+If the element has `data-keeptrack-id` or an `id`, the variable name includes that prefix (`data-keeptrack-id` takes precedence):
 
 ```html
 <!-- Input -->
@@ -204,7 +218,7 @@ When `detectSticky` is enabled, only elements that are currently stuck contribut
 Enable `detectSticky` to detect when `position: sticky` elements become stuck. KeepTrack checks on scroll and exposes the state as:
 
 - A `data-keeptrack-stuck` attribute on the element (for CSS targeting)
-- A `--[id]-stuck` CSS variable on `:root` (`1` when stuck, `0` when not) if the element has an `id`
+- A `--[prefix]-stuck` CSS variable on `:root` (`1` when stuck, `0` when not) if the element has an `id` or `data-keeptrack-id`
 - A `--stuck` CSS variable on the element itself if it has no `id`
 
 ```js
@@ -360,7 +374,7 @@ tracker.unobserve(document.querySelector('.my-element'));
 KeepTrack uses multiple mechanisms to detect changes:
 
 - **ResizeObserver** tracks size changes on individual `[data-keeptrack]` elements
-- **MutationObserver** detects when tracked elements are added/removed from the DOM, when `data-keeptrack` is dynamically added/removed from elements, or when their `data-keeptrack-target-parent`, `data-keeptrack-scroll-padding`, or `id` attributes change
+- **MutationObserver** detects when tracked elements are added/removed from the DOM, when `data-keeptrack` is dynamically added/removed from elements, or when their `data-keeptrack-target-parent`, `data-keeptrack-scroll-padding`, `data-keeptrack-id`, or `id` attributes change
 - **Scroll listener** (opt-in via `detectSticky: true`) detects when `position: sticky` elements become stuck, using a passive listener throttled with `requestAnimationFrame`
 - **requestAnimationFrame polling** (opt-in via `poll: true`) catches computed style changes that don't affect element size, like color or font changes
 

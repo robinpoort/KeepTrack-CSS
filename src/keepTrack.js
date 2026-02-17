@@ -172,12 +172,34 @@
   }
 
   function cleanupStickyState(el, idOverride) {
-    const id = idOverride || el.id;
+    const id = idOverride || getNamePrefix(el);
     if (id) {
       document.documentElement.style.removeProperty(`--${id}-stuck`);
     }
     el.style.removeProperty('--stuck');
     el.removeAttribute('data-keeptrack-stuck');
+  }
+
+  function normalizeNamePrefix(value) {
+    if (!value) return false;
+    const trimmed = value.trim();
+    return trimmed || false;
+  }
+
+  function getNamePrefix(el) {
+    const fromData = normalizeNamePrefix(el.getAttribute('data-keeptrack-id'));
+    if (fromData) return fromData;
+    return normalizeNamePrefix(el.id);
+  }
+
+  function getOldNamePrefix(el, attributeName, oldValue) {
+    if (attributeName === 'data-keeptrack-id') {
+      return normalizeNamePrefix(oldValue) || normalizeNamePrefix(el.id);
+    }
+    if (attributeName === 'id') {
+      return normalizeNamePrefix(el.getAttribute('data-keeptrack-id')) || normalizeNamePrefix(oldValue);
+    }
+    return normalizeNamePrefix(oldValue);
   }
 
   function sameTypes(a, b) {
@@ -222,9 +244,8 @@
       const raw = el.getAttribute('data-keeptrack');
       if (!raw) return null;
       const types = raw.split(',').map((s) => s.trim()).filter(Boolean);
-      const id = el.id || false;
-      const targetValue = el.getAttribute('data-keeptrack-target-parent');
-      const target = getTarget(el, targetValue);
+      const id = getNamePrefix(el);
+      const target = getTarget(el, el.getAttribute('data-keeptrack-target-parent'));
 
       const config = { types, id, target };
       configCache.set(el, config);
@@ -383,7 +404,7 @@
           el.removeAttribute('data-keeptrack-stuck');
         }
 
-        const id = el.id;
+        const id = getNamePrefix(el);
         const stuckValue = stuck ? '1' : '0';
         if (id) {
           document.documentElement.style.setProperty(`--${id}-stuck`, stuckValue);
@@ -561,10 +582,11 @@
                 cleanupStickyState(el);
               }
               relevant = true;
-            } else if (mutation.attributeName === 'id') {
-              const oldId = mutation.oldValue;
-              if (oldId && oldId !== el.id && el.hasAttribute('data-keeptrack-scroll-padding') && !el.hasAttribute('data-keeptrack')) {
-                cleanupStickyState(el, oldId);
+            } else if (mutation.attributeName === 'id' || mutation.attributeName === 'data-keeptrack-id') {
+              const oldPrefix = getOldNamePrefix(el, mutation.attributeName, mutation.oldValue);
+              const newPrefix = getNamePrefix(el);
+              if (oldPrefix && oldPrefix !== newPrefix && el.hasAttribute('data-keeptrack-scroll-padding') && !el.hasAttribute('data-keeptrack')) {
+                cleanupStickyState(el, oldPrefix);
               }
               if (el.hasAttribute('data-keeptrack')) {
                 cleanupElement(el);
@@ -613,7 +635,7 @@
         subtree: true,
         attributes: true,
         attributeOldValue: true,
-        attributeFilter: ['data-keeptrack', 'data-keeptrack-target-parent', 'data-keeptrack-scroll-padding', 'id']
+        attributeFilter: ['data-keeptrack', 'data-keeptrack-target-parent', 'data-keeptrack-scroll-padding', 'data-keeptrack-id', 'id']
       });
 
       // Sticky detection on scroll
