@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2026-03-06
+
+### Fixed
+- `stickyStateCache` was not reset in `destroy()`, causing stale sticky state after re-init
+- `stickyStateCache` was not invalidated in `invalidateStickyTopCache()`, causing stale results after resize/DOM mutation
+- `checkStickyElements` mutated the config cache object as a side effect; replaced with a dedicated `stickyStateCache` WeakMap
+
+### Changed
+- TypeScript types extracted from `build.js` to `src/keepTrack.d.ts` for better IDE support
+- `observe()` now logs a warning when the element has no `data-keeptrack` attribute
+- `sameTypes()` simplified with `Array.prototype.every`
+- README updated to document `KeepTrack()` without `new`
+
 ## [1.0.3] - 2026-02-17
 
 ### Added

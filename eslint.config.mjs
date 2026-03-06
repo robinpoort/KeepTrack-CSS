@@ -24,7 +24,8 @@ export default [
         module: 'readonly',
         exports: 'readonly',
         global: 'readonly',
-        globalThis: 'readonly'
+        globalThis: 'readonly',
+        console: 'readonly'
       }
     },
     rules: {
