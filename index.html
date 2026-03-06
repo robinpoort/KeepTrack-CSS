@@ -246,7 +246,7 @@
          ============================== -->
     <section class="test-section">
       <h2>onChange log</h2>
-      <div id="log" class="log"></div>
+      <p>Changes are logged in the floating panel (bottom-right).</p>
     </section>
 
     <!-- ==============================
@@ -310,6 +310,13 @@
 
   </main>
 
+  <div id="log" class="log-float">
+    <div class="log-toolbar">
+      <button id="log-clear-btn">Clear</button>
+    </div>
+    <div id="log-entries" class="log-entries"></div>
+  </div>
+
   <script src="src/keepTrack.js"></script>
   <script>
     // ==============================
@@ -317,16 +324,25 @@
     // ==============================
 
     const logEl = document.getElementById('log');
-    let maxLogEntries = 50;
+    const logEntries = document.getElementById('log-entries');
+    const maxLogEntries = 50;
 
     function log(msg) {
+      logEl.classList.add('is-visible');
       const entry = document.createElement('div');
+      entry.className = 'log-entry';
       entry.textContent = msg;
-      logEl.prepend(entry);
-      while (logEl.children.length > maxLogEntries) {
-        logEl.removeChild(logEl.lastChild);
+      logEntries.append(entry);
+      while (logEntries.children.length > maxLogEntries) {
+        logEntries.removeChild(logEntries.firstChild);
       }
+      logEntries.scrollTop = logEntries.scrollHeight;
     }
+
+    document.getElementById('log-clear-btn').addEventListener('click', () => {
+      logEntries.innerHTML = '';
+      logEl.classList.remove('is-visible');
+    });
 
     let tracker = new KeepTrack({
       scrollbarWidth: true,
