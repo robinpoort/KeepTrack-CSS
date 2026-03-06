@@ -33,8 +33,10 @@ import KeepTrack from 'keeptrack-css';
 ## Basic usage
 
 ```js
-const tracker = new KeepTrack();
+const tracker = KeepTrack();
 ```
+
+> `KeepTrack` is a factory function — `new` is optional and has no effect.
 
 Add `data-keeptrack` to any HTML element with a comma-separated list of CSS properties to track:
 
@@ -172,7 +174,7 @@ By default, KeepTrack sets `--scrollbar-width` on `:root`, updated on viewport r
 - `--scrollbar-height` is the height (thickness) of the **horizontal** scrollbar
 
 ```js
-new KeepTrack({
+KeepTrack({
   scrollbarWidth: true,   // default: true
   scrollbarHeight: true   // default: false
 });
@@ -222,7 +224,7 @@ Enable `detectSticky` to detect when `position: sticky` elements become stuck. K
 - A `--stuck` CSS variable on the element itself if it has no `id`
 
 ```js
-new KeepTrack({ detectSticky: true });
+KeepTrack({ detectSticky: true });
 ```
 
 ```html
@@ -251,7 +253,7 @@ new KeepTrack({ detectSticky: true });
 The `onChange` callback also fires for sticky state changes with `prop` set to `"stuck"`:
 
 ```js
-new KeepTrack({
+KeepTrack({
   detectSticky: true,
   onChange(el, prop, value) {
     if (prop === 'stuck') {
@@ -271,13 +273,13 @@ affects sticky detection and anchor prediction. If your `top` value actually cha
 into per-frame updates:
 
 ```js
-new KeepTrack({ stickyTopDynamic: true });
+KeepTrack({ stickyTopDynamic: true });
 ```
 
 ## Options
 
 ```js
-new KeepTrack({
+KeepTrack({
   scrollbarWidth: true,   // Track scrollbar width as --scrollbar-width on :root
   scrollbarHeight: false, // Track scrollbar height as --scrollbar-height on :root
   debounceTime: 250,      // Debounce delay in ms for resize and DOM changes
@@ -293,7 +295,7 @@ new KeepTrack({
 Enable this to track properties that don't affect element size, like `background-color`, `color`, or `font-size`. When enabled, KeepTrack checks all tracked values every animation frame and only updates when a value has changed.
 
 ```js
-new KeepTrack({ poll: true });
+KeepTrack({ poll: true });
 ```
 
 If the browser doesn't support `ResizeObserver`, enable `poll` to keep values in sync with size changes.
@@ -303,7 +305,7 @@ If the browser doesn't support `ResizeObserver`, enable `poll` to keep values in
 Enable this to detect when `position: sticky` elements are stuck. Uses a passive scroll listener throttled with `requestAnimationFrame` for minimal performance impact.
 
 ```js
-new KeepTrack({ detectSticky: true });
+KeepTrack({ detectSticky: true });
 ```
 
 ### `stickyTopDynamic`
@@ -312,7 +314,7 @@ When `false` (default), KeepTrack caches resolved sticky `top` values for perfor
 detection and anchor prediction. Set to `true` if your `top` value changes during scroll.
 
 ```js
-new KeepTrack({ stickyTopDynamic: true });
+KeepTrack({ stickyTopDynamic: true });
 ```
 
 ### `onChange`
@@ -320,7 +322,7 @@ new KeepTrack({ stickyTopDynamic: true });
 Called whenever a tracked value changes (including sticky state). Receives the element, the property name, and the new value:
 
 ```js
-new KeepTrack({
+KeepTrack({
   onChange(el, prop, value) {
     console.log(`${prop} changed to ${value}`, el);
   }

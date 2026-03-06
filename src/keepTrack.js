@@ -205,10 +205,7 @@
   function sameTypes(a, b) {
     if (a === b) return true;
     if (!a || !b || a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
+    return a.every((v, i) => v === b[i]);
   }
 
   return function (options) {
@@ -231,6 +228,7 @@
     const appliedConfig = new WeakMap();
     let configCache = new WeakMap();
     let stickyTopCache = new WeakMap();
+    let stickyStateCache = new WeakMap();
     let lastScrollbarWidth;
     let lastScrollbarHeight;
     let lastScrollPaddingTop;
@@ -258,6 +256,7 @@
 
     function invalidateStickyTopCache() {
       stickyTopCache = new WeakMap();
+      stickyStateCache = new WeakMap();
     }
 
     function getStickyTopPxCached(el) {
@@ -383,11 +382,10 @@
     function checkStickyElements() {
       for (const el of trackedElements) {
         if (!el.hasAttribute('data-keeptrack') && !el.hasAttribute('data-keeptrack-scroll-padding')) continue;
-        const config = getElementConfig(el) || {};
-        if (config.isSticky === undefined) {
-          config.isSticky = isStickyElement(el);
+        if (!stickyStateCache.has(el)) {
+          stickyStateCache.set(el, isStickyElement(el));
         }
-        if (!config.isSticky) continue;
+        if (!stickyStateCache.get(el)) continue;
 
         const rect = el.getBoundingClientRect();
         const stickyTop = getStickyTopPxCached(el);
@@ -703,6 +701,9 @@
     };
 
     publicAPIs.observe = function (el) {
+      if (!el.hasAttribute('data-keeptrack')) {
+        console.warn('KeepTrack.observe(): element has no data-keeptrack attribute and will not be tracked.', el);
+      }
       if (trackedSet.has(el)) return;
       trackedElements.push(el);
       trackedSet.add(el);
@@ -793,6 +794,7 @@
       }
       usedMeasurerContainers.clear();
       stickyTopCache = new WeakMap();
+      stickyStateCache = new WeakMap();
     };
 
     publicAPIs.init(options);
