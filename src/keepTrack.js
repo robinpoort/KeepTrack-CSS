@@ -805,7 +805,7 @@
       window.removeEventListener('scrollend', unlockScrollPadding);
 
       // Clean up CSS variables and attributes
-      trackedElements.forEach(cleanupElement);
+      trackedElements.forEach((el) => cleanupElement(el));
 
       if (lastScrollbarWidth) {
         document.documentElement.style.removeProperty('--scrollbar-width');
