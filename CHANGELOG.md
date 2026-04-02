@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2026-04-02
+
+### Added
+- `--keeptrack-scroll-padding-top` CSS custom property on `:root` — the value used for `scroll-padding-top` is now also exposed as a custom property so it can be referenced elsewhere in CSS
+
+### Fixed
+- `destroy()` crashed with "types is not iterable" when 2+ elements were tracked, because `forEach(cleanupElement)` passed the array index as `configOverride`
+- Anchor scroll lock could unlock prematurely mid-flight; double-rAF now also checks proximity to the target scroll position before releasing the lock
+- CSS variable name prefixes derived from element IDs are now validated against an allowed character set, preventing malformed custom property names
+
+### Changed
+- Named constants replace magic numbers: `STUCK_THRESHOLD_PX`, `MAX_CONVERGENCE_ITERATIONS`, `ANCHOR_SCROLL_TIMEOUT_MS`
+- Added JSDoc comments to `resolveTopPxWithMeasurer`, `checkStickyElements`, and `updateScrollPaddingForTarget`
+- `ResizeObserver` unavailability now logs a `console.warn` instead of failing silently
+
 ## [1.0.4] - 2026-03-06
 
 ### Fixed
