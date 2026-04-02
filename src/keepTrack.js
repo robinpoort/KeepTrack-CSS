@@ -20,6 +20,13 @@
     onChange: null
   };
 
+  // Tolerance in px for floating-point rounding when comparing rect.top to sticky-top offset
+  const STUCK_THRESHOLD_PX = 1.5;
+  // Maximum iterations for scroll-padding convergence (padding affects target scroll, which affects padding)
+  const MAX_CONVERGENCE_ITERATIONS = 5;
+  // Fallback timeout (ms) to release the anchor scroll lock if scrollend never fires
+  const ANCHOR_SCROLL_TIMEOUT_MS = 5000;
+
   function debounce(fn, delay) {
     let timeout;
     return function (...args) {
@@ -114,6 +121,10 @@
     return { getTopMeasurer, topMeasurers };
   }
 
+  /**
+   * Resolves a CSS `top` value (e.g. `calc(...)`) to pixels by temporarily applying it
+   * to an invisible measurer element inside the sticky container, then reading the computed value.
+   */
   function resolveTopPxWithMeasurer(el, topValue, usedContainers, getTopMeasurer) {
     const container = getStickyContainer(el);
     if (usedContainers) usedContainers.add(container);
@@ -183,7 +194,11 @@
   function normalizeNamePrefix(value) {
     if (!value) return false;
     const trimmed = value.trim();
-    return trimmed || false;
+    if (!trimmed) return false;
+    // Only allow characters valid in a CSS custom property name segment:
+    // must start with a letter, underscore, or hyphen; followed by alphanumerics, hyphens, or underscores.
+    if (!/^[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(trimmed)) return false;
+    return trimmed;
   }
 
   function getNamePrefix(el) {
@@ -367,6 +382,7 @@
       }
       if (!hasAny) {
         if (lastScrollPaddingTop) {
+          document.documentElement.style.removeProperty('--keeptrack-scroll-padding-top');
           document.documentElement.style.removeProperty('scroll-padding-top');
           lastScrollPaddingTop = undefined;
         }
@@ -375,10 +391,16 @@
       const value = `${top}px`;
       if (value !== lastScrollPaddingTop) {
         lastScrollPaddingTop = value;
-        document.documentElement.style.setProperty('scroll-padding-top', value);
+        document.documentElement.style.setProperty('--keeptrack-scroll-padding-top', value);
+        document.documentElement.style.setProperty('scroll-padding-top', `var(--keeptrack-scroll-padding-top)`);
       }
     }
 
+    /**
+     * Checks all tracked elements for sticky "stuck" state by comparing their current
+     * bounding rect top to their computed sticky-top offset. Updates `data-keeptrack-stuck`
+     * and the corresponding CSS custom property when state changes.
+     */
     function checkStickyElements() {
       for (const el of trackedElements) {
         if (!el.hasAttribute('data-keeptrack') && !el.hasAttribute('data-keeptrack-scroll-padding')) continue;
@@ -391,7 +413,7 @@
         const stickyTop = getStickyTopPxCached(el);
         if (stickyTop === null) continue;
 
-        const stuck = Math.abs(rect.top - stickyTop) < 1.5;
+        const stuck = Math.abs(rect.top - stickyTop) < STUCK_THRESHOLD_PX;
         const wasStuck = el.hasAttribute('data-keeptrack-stuck');
 
         if (stuck === wasStuck) continue;
@@ -416,6 +438,14 @@
       }
     }
 
+    /**
+     * Predicts and applies the correct `scroll-padding-top` for a given anchor target before
+     * the browser scrolls to it. Uses iterative convergence because the required padding
+     * determines the scroll position, which in turn determines which sticky elements are stuck,
+     * which determines the required padding.
+     *
+     * Locks `scroll-padding-top` until the scroll completes (via `scrollend` or a fallback timeout).
+     */
     function updateScrollPaddingForTarget(target) {
       const targetTop = target.getBoundingClientRect().top + window.scrollY;
       const candidates = [];
@@ -447,8 +477,8 @@
       let hasAny = false;
 
       // Iterative convergence: scroll position depends on padding, padding depends on which
-      // sticky elements are stuck, which depends on scroll position. Max 5 iterations to converge.
-      for (let i = 0; i < 5; i++) {
+      // sticky elements are stuck, which depends on scroll position.
+      for (let i = 0; i < MAX_CONVERGENCE_ITERATIONS; i++) {
         const scrollTop = targetTop - padding;
         let nextPadding = 0;
         let nextHasAny = false;
@@ -475,8 +505,10 @@
       if (hasAny) {
         const value = `${padding}px`;
         lastScrollPaddingTop = value;
-        document.documentElement.style.setProperty('scroll-padding-top', value);
+        document.documentElement.style.setProperty('--keeptrack-scroll-padding-top', value);
+        document.documentElement.style.setProperty('scroll-padding-top', `var(--keeptrack-scroll-padding-top)`);
       } else if (lastScrollPaddingTop) {
+        document.documentElement.style.removeProperty('--keeptrack-scroll-padding-top');
         document.documentElement.style.removeProperty('scroll-padding-top');
         lastScrollPaddingTop = undefined;
       }
@@ -489,14 +521,19 @@
         window.addEventListener('scrollend', unlockScrollPadding, { once: true });
       }
       const startScrollY = window.scrollY;
+      const targetScrollY = Math.max(0, targetTop - padding);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (window.scrollY === startScrollY) {
+          const currentScrollY = window.scrollY;
+          // Unlock early only if no scroll happened (target already in view)
+          // or we've landed at the target position. Mid-flight scrolls are
+          // handled by the scrollend event or the fallback timeout.
+          if (currentScrollY === startScrollY || Math.abs(currentScrollY - targetScrollY) < 2) {
             unlockScrollPadding();
           }
         });
       });
-      anchorScrollFallback = setTimeout(unlockScrollPadding, 5000);
+      anchorScrollFallback = setTimeout(unlockScrollPadding, ANCHOR_SCROLL_TIMEOUT_MS);
     }
 
     function refreshElements() {
@@ -552,6 +589,9 @@
         });
       } else {
         resizeObserver = null;
+        if (!settings.poll) {
+          console.warn('KeepTrack: ResizeObserver is not available in this browser. Element size changes will not be tracked automatically. Enable poll: true to use rAF-based polling as a fallback.');
+        }
       }
 
       // DOM changes → observe new elements if relevant
@@ -776,6 +816,7 @@
         lastScrollbarHeight = undefined;
       }
       if (lastScrollPaddingTop) {
+        document.documentElement.style.removeProperty('--keeptrack-scroll-padding-top');
         document.documentElement.style.removeProperty('scroll-padding-top');
         lastScrollPaddingTop = undefined;
       }
