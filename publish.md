@@ -14,9 +14,6 @@ git branch --show-current
 
 # Working tree must be clean (no uncommitted changes)
 git status --porcelain
-
-# npm must be logged in
-npm whoami
 ```
 
 ---
@@ -162,11 +159,11 @@ git push origin master --follow-tags
 
 ## Step 13 — Publish
 
+Tell the user to run the following command to publish to npm:
+
 ```bash
 npm publish --access public
 ```
-
-Verify the command exits with code 0 and confirm the published version to the user.
 
 ---
 
